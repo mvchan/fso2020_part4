@@ -7,6 +7,7 @@ const blogSchema = new mongoose.Schema({
     likes: Number
 })
 
+//deleting a property here does not delete it from the actual database
 blogSchema.set('toJSON', {
     transform: (document, returnedObject) => {
         returnedObject.id = returnedObject._id.toString()
