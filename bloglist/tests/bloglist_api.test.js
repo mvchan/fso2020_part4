@@ -83,6 +83,43 @@ test('an invalid blog request (without title and URL) is not added', async () =>
     const blogsAtEnd = await helper.blogsInDb()
     expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
 })
+
+test('a blog can be deleted', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToDelete = blogsAtStart[0]
+
+    await api
+        .delete(`/api/blogs/${blogToDelete.id}`)
+        .expect(204)
+
+    const blogsAtEnd = await helper.blogsInDb()
+
+    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length - 1)
+
+    const blogTitles = blogsAtEnd.map(b => b.title)
+    expect(blogTitles).not.toContain(blogToDelete.title)
+})
+
+test('a blog post\'s likes can be updated', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToUpdate = blogsAtStart[0]
+
+    const updatedBlog = {
+        title: blogToUpdate.title,
+        author: blogToUpdate.author,
+        url: blogToUpdate.url,
+        likes: blogToUpdate.likes + 1
+    }
+
+    await api
+        .put(`/api/blogs/${blogToUpdate.id}`)
+        .send(updatedBlog)
+        .expect(200)
+        .expect('Content-Type', /application\/json/)
+
+    const blogsAtEnd = await helper.blogsInDb()
+    expect(blogsAtEnd.find(blog => blog.id === blogToUpdate.id).likes).not.toBe(blogToUpdate.likes)
+})
 /*
 
 test('a specific blog is within the returned blogs', async () => {
@@ -122,25 +159,6 @@ test('a specific blog can be viewed', async () => {
     const processedBlogToView = JSON.parse(JSON.stringify(blogToView))
 
     expect(resultBlog.body).toEqual(processedBlogToView)
-})
-
-test('a blog can be deleted', async () => {
-    const blogsAtStart = await helper.blogsInDb()
-    const blogToDelete = blogsAtStart[0]
-
-    await api
-        .delete(`/api/blogs/${blogToDelete.id}`)
-        .expect(204)
-
-    const blogsAtEnd = await helper.blogsInDb()
-
-    expect(blogsAtEnd).toHaveLength(
-        helper.initialBlogs.length - 1
-    )
-
-    const contents = blogsAtEnd.map(r => r.content)
-
-    expect(contents).not.toContain(blogToDelete.content)
 })
 */
 afterAll(() => {
