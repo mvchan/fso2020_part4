@@ -1,9 +1,13 @@
 const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
+const User = require('../models/user')
 
 //all try-catch have been removed and implicitly called by express-async-errors to make code more readable
 blogsRouter.get('/', async (request, response) => {
-    const blogs = await Blog.find({})
+    //populate allows for "querying" by aggregating the documents from the other collection
+    //this is tied to the schema definition with the usage of the ref option
+    //by default, the entire document's fields will be returned unless specified
+    const blogs = await Blog.find({}).populate('user', { username: 1, name: 1 })
     response.json(blogs)
 })
 
@@ -15,8 +19,12 @@ blogsRouter.post('/', async (request, response) => {
         request.body.likes = 0
 
     const blog = new Blog(request.body)
-
     const savedBlog = await blog.save()
+
+    const user = await User.findById(request.body.user)
+    user.blogs = user.blogs.concat(savedBlog._id)
+    await user.save()
+
     response.json(savedBlog)
 })
 
