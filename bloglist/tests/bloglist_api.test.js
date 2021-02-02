@@ -6,13 +6,29 @@ const api = supertest(app)
 const bcrypt = require('bcrypt')
 const User = require('../models/user')
 const Blog = require('../models/blog')
+const jwt = require('jsonwebtoken')
+
+let TESTING_TOKEN = null
 
 describe('blog-specific tests', () => {
     beforeEach(async () => {
+        //generate auth token using one of the test users
+        const allUsers = await helper.usersInDb()
+        const testingUser = {
+            username: allUsers[0].username,
+            id: allUsers[0].id,
+        }
+
+        TESTING_TOKEN = jwt.sign(testingUser, process.env.SECRET)
+
+        //clear out existing blogs and regenerate under the test user
         await Blog.deleteMany({})
 
-        //Promise.all executes promises in parallel, so use for...of to guarantee execution order
-        const blogObjects = helper.initialBlogs.map(blog => new Blog(blog))
+        //Promise.all executes promises in parallel, so use for...of to guarantee execution order otherwise
+        const blogObjects = helper.initialBlogs.map(blog => {
+            blog.user = testingUser.id
+            return new Blog(blog)
+        })
         const promiseArray = blogObjects.map(blog => blog.save())
         await Promise.all(promiseArray)
     })
@@ -33,18 +49,16 @@ describe('blog-specific tests', () => {
     })
 
     test('a valid blog request can be added', async () => {
-        const anyUser = await User.findOne()
-
         const newBlog = {
             title: 'test title',
             author: 'test author',
             url: 'test URL',
-            likes: 0,
-            user: anyUser._id
+            likes: 0
         }
 
         await api
             .post('/api/blogs')
+            .set('Authorization',`bearer ${TESTING_TOKEN}`)
             .send(newBlog)
             .expect(200)
             .expect('Content-Type', /application\/json/)
@@ -57,17 +71,15 @@ describe('blog-specific tests', () => {
     })
 
     test('a valid blog request without likes property will be added with default of 0', async () => {
-        const anyUser = await User.findOne()
-
         const newBlog = {
             title: 'test title no likes',
             author: 'test author no likes',
-            url: 'test URL no likes',
-            user: anyUser._id
+            url: 'test URL no likes'
         }
 
         await api
             .post('/api/blogs')
+            .set('Authorization',`bearer ${TESTING_TOKEN}`)
             .send(newBlog)
             .expect(200)
             .expect('Content-Type', /application\/json/)
@@ -86,6 +98,7 @@ describe('blog-specific tests', () => {
 
         await api
             .post('/api/blogs')
+            .set('Authorization',`bearer ${TESTING_TOKEN}`)
             .send(newBlog)
             .expect(400)
 
@@ -99,6 +112,7 @@ describe('blog-specific tests', () => {
 
         await api
             .delete(`/api/blogs/${blogToDelete.id}`)
+            .set('Authorization',`bearer ${TESTING_TOKEN}`)
             .expect(204)
 
         const blogsAtEnd = await helper.blogsInDb()
@@ -109,6 +123,22 @@ describe('blog-specific tests', () => {
         expect(blogTitles).not.toContain(blogToDelete.title)
     })
 
+    test('a blog cannot be deleted if no token is provided', async () => {
+        const blogsAtStart = await helper.blogsInDb()
+        const blogToDelete = blogsAtStart[0]
+
+        await api
+            .delete(`/api/blogs/${blogToDelete.id}`)
+            .expect(401)
+
+        const blogsAtEnd = await helper.blogsInDb()
+
+        expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
+
+        const blogTitles = blogsAtEnd.map(b => b.title)
+        expect(blogTitles).toContain(blogToDelete.title)
+    })
+
     test('a blog post\'s likes can be updated', async () => {
         const blogsAtStart = await helper.blogsInDb()
         const blogToUpdate = blogsAtStart[0]
@@ -117,12 +147,12 @@ describe('blog-specific tests', () => {
             title: blogToUpdate.title,
             author: blogToUpdate.author,
             url: blogToUpdate.url,
-            likes: blogToUpdate.likes + 1,
-            user: blogToUpdate.user
+            likes: blogToUpdate.likes + 1
         }
 
         await api
             .put(`/api/blogs/${blogToUpdate.id}`)
+            .set('Authorization',`bearer ${TESTING_TOKEN}`)
             .send(updatedBlog)
             .expect(200)
             .expect('Content-Type', /application\/json/)
@@ -176,10 +206,31 @@ describe('when there is initially one user in db', () => {
         const result = await api
             .post('/api/users')
             .send(newUser)
-            .expect(400)
+            .expect(406)
             .expect('Content-Type', /application\/json/)
 
-        expect(result.body.error).toContain('`username` to be unique')
+        expect(result.body.error).toContain('username must be unique')
+
+        const usersAtEnd = await helper.usersInDb()
+        expect(usersAtEnd).toHaveLength(usersAtStart.length)
+    })
+
+    test('creation fails with proper statuscode and message if user and password are less than 3 characters', async () => {
+        const usersAtStart = await helper.usersInDb()
+
+        const newUser = {
+            username: 'ab',
+            name: 'ab',
+            password: 'ab',
+        }
+
+        const result = await api
+            .post('/api/users')
+            .send(newUser)
+            .expect(406)
+            .expect('Content-Type', /application\/json/)
+
+        expect(result.body.error).toContain('username and password must be at least 3 characters long')
 
         const usersAtEnd = await helper.usersInDb()
         expect(usersAtEnd).toHaveLength(usersAtStart.length)

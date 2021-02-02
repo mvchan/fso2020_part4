@@ -1,12 +1,150 @@
+
+
+//************************************* BLOG *************************************
+
+###
 GET http://localhost:3003/api/blogs
 
 ###
 POST http://localhost:3003/api/blogs
+Content-Type: application/json
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1hYzEwIiwiaWQiOiI2MDE4NmYxNDBiMDJjNjNjNTAzOTU5NjIiLCJpYXQiOjE2MTIyMTg4NzR9.RYI9rBpetnRqSvpC1CKTN7ktlWz1GfVefv7guyjdi4E
+
+{
+    "title": "brandyza",
+    "author": "brandyza",
+    "url": "brandyza",
+    "likes": 444
+}
+
+###
+POST http://localhost:3003/api/blogs
+Content-Type: application/json
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNhYmVyIiwiaWQiOiI2MDE4NmU4MmM3NjBhZjZjOWMyYzkyZmEiLCJpYXQiOjE2MTIyMTg5OTZ9.kfDAF4DWsi39gjZhNYASJfBkZyXUWYRPR-Qhpl-KHUk
+
+{
+    "title": "typemoon",
+    "author": "typemoon",
+    "url": "typemoon",
+    "likes": 7
+}
+
+###
+POST http://localhost:3003/api/blogs
+Content-Type: application/json
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNhYmVyIiwiaWQiOiI2MDE4NmU4MmM3NjBhZjZjOWMyYzkyZmEiLCJpYXQiOjE2MTIyMTQyMzd9.fpBaTitC9fsxmcEFM26VCG0TOShmmM7pNk7UBgjHvUU
+
+{
+    "title": "Fate Stay Night",
+    "author": "Kinoko Nasu",
+    "url": "www.type-moon.net",
+    "likes": 69,
+    "user": "60186e82c760af6c9c2c92fa"
+}
+
+###
+PUT http://localhost:3003/api/blogs/60152c7fcbad0b6ddcc6f4cd
 Content-Type: application/json
 
 {
     "title": "This is my first book",
     "author": "Edgord Ellen Pie",
     "url": "www.book.mine",
-    "likes": 7
+    "likes": 999
+}
+
+###
+DELETE http://localhost:3003/api/blogs/60186ffc0b02c63c50395966
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNhYmVyIiwiaWQiOiI2MDE4NmU4MmM3NjBhZjZjOWMyYzkyZmEiLCJpYXQiOjE2MTIyMTQyMzd9.fpBaTitC9fsxmcEFM26VCG0TOShmmM7pNk7UBgjHvUU
+
+
+###
+POST http://localhost:3003/api/blogs
+Content-Type: application/json
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InJvb3QiLCJpZCI6IjYwMThkMjk0YTA5NzEzNDdiMDZkOGMxYyIsImlhdCI6MTYxMjIzOTUxMn0.KmYtQn37rx6uDQlEY8Gw33WIlj5zTvDYn6urmM-6RUY
+
+{
+    "title": "shouldwork1",
+    "author": "shouldwork1",
+    "url": "shouldwork1",
+    "likes": 12345
+}
+
+
+//************************************* USER *************************************
+
+
+###
+GET http://localhost:3003/api/users
+
+###
+POST http://localhost:3003/api/users
+Content-Type: application/json
+
+{
+    "username": "saber",
+    "name": "Artoria",
+    "password": "shiro88"
+}
+
+###
+POST http://localhost:3003/api/users
+Content-Type: application/json
+
+{
+    "username": "mac10",
+    "name": "Mark",
+    "password": "pass456"
+}
+
+###
+POST http://localhost:3003/api/users
+Content-Type: application/json
+
+{
+    "username": "abc",
+    "name": "abc",
+    "password": "abc"
+}
+
+###
+POST http://localhost:3003/api/users
+Content-Type: application/json
+
+{
+    "username": "root",
+    "name": "root",
+    "password": "sekret"
+}
+
+
+
+//************************************* LOGIN *************************************
+
+
+###
+POST http://localhost:3003/api/login
+Content-Type: application/json
+
+{
+    "username": "mac10",
+    "password": "pass456"
+}
+
+###
+POST http://localhost:3003/api/login
+Content-Type: application/json
+
+{
+    "username": "saber",
+    "password": "shiro88"
+}
+
+###
+POST http://localhost:3003/api/login
+Content-Type: application/json
+
+{
+    "username": "root",
+    "password": "sekret"
 }
