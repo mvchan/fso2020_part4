@@ -64,9 +64,6 @@ blogsRouter.delete('/:id', async (request, response) => {
 })
 
 blogsRouter.put('/:id', async (request, response) => {
-    //request.token is handled by middleware
-    const decodedToken = jwt.verify(request.token, process.env.SECRET)
-
     const body = new Blog(request.body)
 
     const blog = {
@@ -79,8 +76,8 @@ blogsRouter.put('/:id', async (request, response) => {
 
     //for update-related methods, validation is off by default and needs to be turned on through runValidators and context options
     const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, blog, { new: true, runValidators: true, context: 'query' })
-    if (updatedBlog.user.toString() === decodedToken.id.toString())
-        response.json(updatedBlog)
+    if (updatedBlog)
+        return response.json(updatedBlog)
 
     return response.status(404).end()
 })
